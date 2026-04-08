@@ -1,0 +1,16 @@
+node_modules/
+
+# Cypress artifacts
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
+# Generated reports and logs
+*.log
+result*.json
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,20 @@
+{
+  "name": "ui-testing-patterns-suite-2",
+  "version": "1.0.0",
+  "description": "Suite 2 — Criação de Conta via Page Objects | Checkout via App Actions",
+  "main": "index.js",
+  "scripts": {
+    "test": "cypress run",
+    "cy:open": "cypress open",
+    "test:conta": "cypress run --spec cypress/e2e/CriacaoDeConta.cy.js",
+    "test:checkout": "cypress run --spec cypress/e2e/Checkout.cy.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "cypress": "^15.13.0",
+    "cypress-real-events": "^1.15.0"
+  }
+}
