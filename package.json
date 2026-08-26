@@ -7,7 +7,8 @@
     "test": "cypress run",
     "cy:open": "cypress open",
     "test:conta": "cypress run --spec cypress/e2e/CriacaoDeConta.cy.js",
-    "test:checkout": "cypress run --spec cypress/e2e/Checkout.cy.js"
+    "test:checkout": "cypress run --spec cypress/e2e/Checkout.cy.js",
+    "cy:record": "cypress run --record"
   },
   "keywords": [],
   "author": "",

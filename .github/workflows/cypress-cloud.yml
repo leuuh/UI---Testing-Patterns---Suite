@@ -1,0 +1,34 @@
+name: Cypress Cloud
+
+on:
+  push:
+    branches: [ main, feat/cypress-cloud ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  cypress-run:
+    name: E2E gravado no Cypress Cloud
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # A suite roda contra a EBAC Store publica; nao ha servidor para subir.
+      - name: Rodar Cypress gravando no Cloud
+        run: npm run cy:record -- --tag ci,${{ github.ref_name }}
+        env:
+          CYPRESS_PROJECT_ID: ${{ vars.CYPRESS_PROJECT_ID }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
