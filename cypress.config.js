@@ -7,7 +7,7 @@ module.exports = defineConfig({
    * O CI sobrescreve via a variavel de ambiente CYPRESS_PROJECT_ID.
    * O segredo (record key) nunca entra aqui - so em CYPRESS_RECORD_KEY.
    */
-  projectId: process.env.CYPRESS_PROJECT_ID,
+  projectId: "2hz02q",
 
   /*
    * Sem retries o Cypress Cloud nao tem como classificar um teste como flaky:
