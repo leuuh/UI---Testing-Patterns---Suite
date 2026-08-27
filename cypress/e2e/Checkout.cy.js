@@ -8,7 +8,8 @@
  * Ã© feito atravÃ©s de App Actions definidas em cypress/support/commands.js.
  * Os testes verificam apenas o resultado final das aÃ§Ãµes.
  *
- * Produtos disponÃ­veis: "Camiseta EBAC", "TÃªnis Esportivo"
+ * O produto usado nos testes e escolhido em tempo de execucao (ver `produto`),
+ * porque a loja e um ambiente compartilhado e o estoque muda.
  */
 
 describe('Suite 2 | Checkout â€” App Actions', () => {
@@ -16,8 +17,30 @@ describe('Suite 2 | Checkout â€” App Actions', () => {
   const USER_EMAIL = 'cliente@ebac.art.br';
   const USER_SENHA = 'GD*peToHNJ1#c$sgk08EaYJQ';
 
-  // Produto utilizado nos testes (A Camiseta EBAC está sem estoque no BD da EBAC no momento)
-  const PRODUTO = 'Tênis Esportivo';
+  /*
+   * Produto usado nos testes — escolhido em tempo de execução.
+   *
+   * A loja é um ambiente compartilhado e produto zerado CONTINUA na vitrine: o
+   * card abre normalmente, mas o PUT /public/updateCart responde 401 com
+   * {"success":false,"error":"0 quantities available for <produto>"}. O front
+   * engole o erro e o carrinho fica vazio, sem nada na tela — o teste falhava
+   * bem depois, no checkout, longe da causa.
+   *
+   * Pior: escolher por NOME é impossível nessa vitrine. Os 8 cards exibidos
+   * são todos "Camiseta EBAC" (registros duplicados), e os 4 primeiros estão
+   * zerados — cy.contains(nome) sempre casava um deles.
+   *
+   * Medido: a ordem dos cards no DOM é a mesma da API que a vitrine consome
+   * (/public/getProducts?sortBy=popularity), então `pickAvailableProduct`
+   * escolhe por POSIÇÃO e devolve { index, name }. Ver support/commands.js.
+   */
+  let produto;
+
+  beforeEach(() => {
+    cy.pickAvailableProduct().then((escolhido) => {
+      produto = escolhido;
+    });
+  });
 
   // Dados de envio para o checkout
   const SHIPPING = {
@@ -37,18 +60,18 @@ describe('Suite 2 | Checkout â€” App Actions', () => {
     });
 
     it('deve adicionar um produto ao carrinho com sucesso', () => {
-      // App Action: adiciona produto pelo nome
-      cy.addProductToCart(PRODUTO);
+      // App Action: adiciona produto (escolhido por posicao na vitrine)
+      cy.addProductToCart(produto);
 
       // App Action: vai ao carrinho
       cy.goToCart();
 
       // VerificaÃ§Ã£o: produto deve estar no carrinho
-      cy.contains(PRODUTO, { timeout: 10000 }).should('exist');
+      cy.contains(produto.name, { timeout: 10000 }).should('exist');
     });
 
     it('deve exibir o total do carrinho apÃ³s adicionar produto', () => {
-      cy.addProductToCart(PRODUTO);
+      cy.addProductToCart(produto);
       cy.goToCart();
 
       // Verificação: total do carrinho deve ser visível (preço ou label de total)
@@ -57,7 +80,7 @@ describe('Suite 2 | Checkout â€” App Actions', () => {
     });
 
     it('deve atualizar o contador do carrinho apÃ³s adicionar produto', () => {
-      cy.addProductToCart(PRODUTO);
+      cy.addProductToCart(produto);
 
       // VerificaÃ§Ã£o: Ã­cone/aba de carrinho deve estar visÃ­vel apÃ³s adicionar produto
       cy.get('a[href="/Tab/Cart"], a[href="/Tab/Order"]', { timeout: 10000 }).should('exist');
@@ -68,20 +91,26 @@ describe('Suite 2 | Checkout â€” App Actions', () => {
   // CenÃ¡rio 2: Fluxo completo de checkout
   // ----------------------------------------------------------------
   describe('Fluxo completo de checkout', () => {
-    before(() => {
-      // App Action: login uma vez para todo o grupo
+    beforeEach(() => {
+      /*
+       * App Action: login antes de CADA teste.
+       * Com testIsolation (padrao do Cypress 12+) os cookies/localStorage sao
+       * limpos antes de cada teste. Um hook `before` roda ANTES dessa limpeza,
+       * entao a sessao era descartada e a loja respondia como usuario anonimo
+       * (carrinho do servidor vazio -> sem botao "Proceed to Checkout").
+       */
       cy.loginViaUi(USER_EMAIL, USER_SENHA);
     });
 
     it('deve concluir o checkout com produto no carrinho', () => {
       // App Action: adiciona produto
-      cy.addProductToCart(PRODUTO);
+      cy.addProductToCart(produto);
 
       // App Action: vai ao carrinho
       cy.goToCart();
 
       // Verificação: produto presente
-      cy.contains(PRODUTO, { timeout: 10000 }).should('exist');
+      cy.contains(produto.name, { timeout: 10000 }).should('exist');
 
       // App Action: preenche dados de envio e confirma pedido
       cy.fillCheckoutAndPlace(SHIPPING);
